@@ -15,5 +15,6 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
    it will generate a file "tomography_ak135_C21_angle...."
    copy ../model/tomography_ak135_C21_angle.... to DATA/tomo_files/tomography_model.xyz
    submit a job for simulation, sbatch sbash_tomo.sh
-   check out.log or OUTPUT_FILES/
+   check out.log to see if it runs normally
+   The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI
 
