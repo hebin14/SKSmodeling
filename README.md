@@ -6,8 +6,8 @@ Some modifications have been done with specfem3D, e.g, adding parameters like AZ
 By running myinstall.sh in specfem3d, you could remake everything and reinstall specfem.
 
 # How to run these examples step by step
-1. Preparations\
-   install specfem3D
+1. Preparations \
+   install specfem3D \
    make sactools_c in order to plot the data later
 1. run mesh_ak135
    go to mesh_ak135 folder
