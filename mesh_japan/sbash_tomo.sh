@@ -12,7 +12,8 @@ currentdir=`pwd`
 cd $SLURM_SUMBIT_DIR
 
 cd $currentdir
-
+mkdir -p OUTPUT_FILES 
+mkdir -p OUTPUT_FILES/DATABASES_MPI
 echo "running example: `date`"
 # sets up directory structure in current example directory
 echo $currentdir
