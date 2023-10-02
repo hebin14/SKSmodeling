@@ -18,7 +18,7 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
    copy ../model/tomography_ak135_C21_angle.... to DATA/tomo_files/tomography_model.xyz \
    submit a job for simulation, sbatch sbash_tomo.sh \
    check out.log to see if it runs normally \
-   The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI \
+   The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI 
 
    go to plt_semd folder, use sh step1_preprocessing tomo, it will convert the output three-component seismograms into ZRT coordinate with sac format, then run step2_gmt_plot_dist tomo, it will generate a figure named tomo.jpg for visualization.
 
