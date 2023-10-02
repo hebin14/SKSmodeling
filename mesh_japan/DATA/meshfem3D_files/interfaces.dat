@@ -1,0 +1,8 @@
+# number of interfaces
+1
+# topo
+.false. 480 480  140.000 38.75 0.004166666667d0 0.0041666666667d0
+topo_japan_taper.dat
+# for each layer, we give the number of spectral elements in the vertical direction
+# layer number 1 (bottom layer)
+41

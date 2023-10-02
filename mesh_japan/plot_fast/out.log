@@ -1,0 +1,70 @@
+/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan/plot_fast
+A 140.24/39.75 A 141.75/39.85
+B 141.00/39.00 B 141.10/40.50
+coordinate info1::140.24 141.75 39.75 39.85 -300000 0 0 129.475065851
+coordinate info2::141 141.1 39 40.5 -300000 0 0 167.011493694
+bound1: -R140.24/141.75/0.1/200
+bound2: -R141/141.1/0.1/200
+========generating grd files===============
+COOR_PATH = ../OUTPUT_FILES/DATABASES_MPI
+MODEL_PATH = ../OUTPUT_FILES/DATABASES_MPI
+input points file = input/profA.cords
+output ascii file = ./input/profA.true.M00
+ finished reading parameters ../OUTPUT_FILES/DATABASES_MPI/proc_vpvhvsvhrhogcgs.
+ bin
+ finished reading coordinates
+ min/max x range:   434890.3       564159.9    
+ min/max y range:   4400280.       4411372.    
+ min/max z range:  -300000.0      0.0000000E+00
+ finished finding local distmin
+ Writing out gmt file ...
+COOR_PATH = ../OUTPUT_FILES/DATABASES_MPI
+MODEL_PATH = ../OUTPUT_FILES/DATABASES_MPI
+input points file = input/profB.cords
+output ascii file = ./input/profB.true.M00
+ finished reading parameters ../OUTPUT_FILES/DATABASES_MPI/proc_vpvhvsvhrhogcgs.
+ bin
+ finished reading coordinates
+ min/max x range:   500000.0       508473.4    
+ min/max y range:   4316770.       4483254.    
+ min/max z range:  -300000.0      0.0000000E+00
+ finished finding local distmin
+ Writing out gmt file ...
+
+scontrol show jobid 10819048
+JobId=10819048 JobName=get_abs_profile_aziso.sh
+   UserId=binhe(3097241) GroupId=liuqy(6000084) MCS_label=N/A
+   Priority=10713472 Nice=0 Account=rrg-liuqy QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:13 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2023-10-01T23:17:34 EligibleTime=2023-10-01T23:17:34
+   AccrueTime=2023-10-01T23:17:34
+   StartTime=2023-10-01T23:17:35 EndTime=2023-10-01T23:17:48 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-01T23:17:35 Scheduler=Main
+   Partition=debug AllocNode:Sid=nia-login06:249713
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=nia0001
+   BatchHost=nia0001
+   NumNodes=1 NumCPUs=80 NumTasks=40 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=40,mem=175000M,node=1,billing=20
+   AllocTRES=cpu=80,mem=175000M,node=1,billing=40
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=175000M MinTmpDiskNode=0
+   Features=[skylake|cascade] DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan/plot_fast/get_abs_profile_aziso.sh
+   WorkDir=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan/plot_fast
+   Comment=/opt/slurm/bin/sbatch --export=NONE get_abs_profile_aziso.sh 
+   StdErr=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan/plot_fast/out.log
+   StdIn=/dev/null
+   StdOut=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan/plot_fast/out.log
+   Power=
+   
+
+sacct -j 10819048
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+10819048     get_abs_p+  rrg-liuqy   00:00:13                        01:09.667  01:09.765      0:0 
+10819048.ba+      batch  rrg-liuqy   00:00:13    149044K      1604K  01:09.666  01:09.764      0:0 
+10819048.ex+     extern  rrg-liuqy   00:00:13    148744K       896K   00:00:00   00:00:00      0:0 

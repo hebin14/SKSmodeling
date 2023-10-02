@@ -1,0 +1,30 @@
+#!/bin/bash -f
+# Luis Rivera, CNRS, France, 2001: conversion from ASCII to SAC
+# input ASCII format is time and displacement on two columns
+# 8 digits of precision
+export SAC_DISPLAY_COPYRIGHT=0
+\rm -f *_TMP  >& /dev/null
+
+file=$1
+cmpaz=$2
+cmpinc=$3
+# time step
+T0=`head -1 $file |awk '{print $1}'`
+T1=`head -2 $file |tail -1 |awk '{print $1}'`
+dt=`echo $T0 $T1 |awk '{print sqrt(($2-$1)*($2-$1))}'`
+# second column
+awk '{print $2}' ${file}   |\
+sed -e "s/[Dd]/ e/"     |\
+awk '{print int($1*1e8)/1e8, $2}'  |\
+sed -e "s/ e/e/"     > ${file}_TMP
+
+sac << LASTLINE
+          readtable ${file}_TMP
+          ch cmpaz $cmpaz cmpinc $cmpinc
+          ch b     $T0
+          ch delta $dt
+          write ${file}.sac
+          q
+LASTLINE
+rm  ${file}_TMP
+

@@ -1,0 +1,28 @@
+#  input file for embedded FK modeiling
+#
+#  for each layer we give :
+#  LAYER ilayer rho vp vs ztop
+#  the last layer is the homogeneous half space
+#
+#
+# model description  ---------------------
+NLAYER         4
+LAYER 1 2720 5800 3460 0
+LAYER 2 3319 8040 4490 -30000
+LAYER 3 3425 8300 4518 -120000
+LAYER 4 3425 8300 4518 -200000
+#----------------------------------------
+# incident wave p or sv
+INCIDENT_WAVE      sv
+#----------------------------------------
+# anlges of incomming wave
+BACK_AZIMUTH           0.580
+TAKE_OFF               7.25
+#----------------------------------------
+FREQUENCY_MAX      0.5
+#----------------------------------------
+TIME_WINDOW       240
+#----------------------------------------
+# optionnal
+ ORIGIN_WAVEFRONT  498761.25       4400497.50      -400000.0
+# ORIGIN_TIME 

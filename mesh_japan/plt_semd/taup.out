@@ -1,0 +1,7 @@
+
+Model: prem
+Distance   Depth   Phase   Travel    Ray Param  Takeoff  Incident  Purist    Purist
+  (deg)     (km)   Name    Time (s)  p (s/deg)   (deg)    (deg)   Distance   Name 
+-----------------------------------------------------------------------------------
+   84.48    13.0   SKS     1373.11     6.465     10.74    10.72    84.48   = SKS  
+

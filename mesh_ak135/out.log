@@ -1,0 +1,56 @@
+running example: Sun Oct  1 22:57:47 EDT 2023
+/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135
+
+  running mesher on  40 processors...
+
+
+  running database generation on  40 processors...
+
+ full anisotropy
+
+  running solver on  40 processors...
+
+
+see results in directory: OUTPUT_FILES/
+
+done
+rm: cannot remove ‘shot*’: No such file or directory
+Sun Oct 1 22:59:25 EDT 2023
+
+scontrol show jobid 10819019
+JobId=10819019 JobName=sks_tomo
+   UserId=binhe(3097241) GroupId=liuqy(6000084) MCS_label=N/A
+   Priority=10713472 Nice=0 Account=rrg-liuqy QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:01:42 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2023-10-01T22:57:42 EligibleTime=2023-10-01T22:57:42
+   AccrueTime=2023-10-01T22:57:42
+   StartTime=2023-10-01T22:57:43 EndTime=2023-10-01T22:59:25 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-01T22:57:43 Scheduler=Main
+   Partition=debug AllocNode:Sid=nia-login06:85249
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=nia0001
+   BatchHost=nia0001
+   NumNodes=1 NumCPUs=80 NumTasks=40 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=40,mem=175000M,node=1,billing=20
+   AllocTRES=cpu=80,mem=175000M,node=1,billing=40
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=175000M MinTmpDiskNode=0
+   Features=[skylake|cascade] DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135/sbash_tomo.sh
+   WorkDir=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135
+   Comment=/opt/slurm/bin/sbatch --export=NONE sbash_tomo.sh 
+   StdErr=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135/out.log
+   StdIn=/dev/null
+   StdOut=/gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135/out.log
+   Power=
+   
+
+sacct -j 10819019
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+10819019       sks_tomo  rrg-liuqy   00:01:42                        02:05.604   01:00:26      0:0 
+10819019.ba+      batch  rrg-liuqy   00:01:42  55339904K  19920144K  02:05.604   01:00:26      0:0 
+10819019.ex+     extern  rrg-liuqy   00:01:42    148744K      1080K   00:00:00   00:00:00      0:0 

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+isacf=$1
+osacf=$2
+
+sac <<EOF
+r $isacf
+SETBB normax &1,DEPMAX
+SETBB normin &1,DEPMIN
+SETBB normamp (MAX (ABSOLUTE %normax) (ABSOLUTE %normin))
+GETBB normamp
+DIV %normamp
+WRITE $osacf
+quit
+EOF
