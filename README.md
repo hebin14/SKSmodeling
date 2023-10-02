@@ -6,10 +6,12 @@ Some modifications have been done with specfem3D, e.g, adding parameters like AZ
 By running myinstall.sh in specfem3d, you could remake everything and reinstall specfem.
 
 # How to run these examples step by step
-1. Preparations \
+1. Preparations
+   
    install specfem3D \
    make sactools_c in order to plot the data later 
 1. run mesh_ak135 \
+
    go to mesh_ak135 folder \
    in ../model/ak135, modify and run creat_ansi_C21.py to design your azimuthal anisotropy parameters, like strength and fast azimuthal angle
    it will generate a file "tomography_ak135_C21_angle...." \
@@ -17,6 +19,7 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
    submit a job for simulation, sbatch sbash_tomo.sh \
    check out.log to see if it runs normally \
    The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI \
+
    go to plt_semd folder, use sh step1_preprocessing tomo, it will convert the output three-component seismograms into ZRT coordinate with sac format, then run step2_gmt_plot_dist tomo, it will generate a figure named tomo.jpg for visualization.
 
    you should be able to get a figure the same as tomo_init.zrt.jpg in this folder. Otherwise, something is wrong.
