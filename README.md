@@ -9,7 +9,7 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
 1. Preparations \
    install specfem3D \
    make sactools_c in order to plot the data later 
-1. run mesh_ak135
+1. run mesh_ak135 \
    go to mesh_ak135 folder \
    in ../model/ak135, modify and run creat_ansi_C21.py to design your azimuthal anisotropy parameters, like strength and fast azimuthal angle
    it will generate a file "tomography_ak135_C21_angle...." \
