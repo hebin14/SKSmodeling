@@ -8,13 +8,13 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
 # How to run these examples step by step
 1. Preparations \
    install specfem3D \
-   make sactools_c in order to plot the data later \
+   make sactools_c in order to plot the data later 
 1. run mesh_ak135
-   go to mesh_ak135 folder
+   go to mesh_ak135 folder \
    in ../model/ak135, modify and run creat_ansi_C21.py to design your azimuthal anisotropy parameters, like strength and fast azimuthal angle
-   it will generate a file "tomography_ak135_C21_angle...."
-   copy ../model/tomography_ak135_C21_angle.... to DATA/tomo_files/tomography_model.xyz
-   submit a job for simulation, sbatch sbash_tomo.sh
-   check out.log to see if it runs normally
-   The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI
+   it will generate a file "tomography_ak135_C21_angle...." \
+   copy ../model/tomography_ak135_C21_angle.... to DATA/tomo_files/tomography_model.xyz \
+   submit a job for simulation, sbatch sbash_tomo.sh \
+   check out.log to see if it runs normally \
+   The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI \
 
