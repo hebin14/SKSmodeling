@@ -20,7 +20,5 @@ By running myinstall.sh in specfem3d, you could remake everything and reinstall 
    check out.log to see if it runs normally \
    The output seismograms will be stored in OUTPUT_FILES and the binary velocity models will be stored in OUTPUT_FILES/DATABASES_MPI 
 
-   go to plt_semd folder, use sh step1_preprocessing tomo, it will convert the output three-component seismograms into ZRT coordinate with sac format, then run step2_gmt_plot_dist tomo, it will generate a figure named tomo.jpg for visualization.
-
-   you should be able to get a figure the same as tomo_init.zrt.jpg in this folder. Otherwise, something is wrong.
+   go to plt_semd folder, use sh step1_preprocessing tomo, it will convert the output three-component seismograms into ZRT coordinate with sac format, then run step2_gmt_plot_dist tomo, it will generate a figure named tomo.jpg for visualization. You should be able to get a figure the same as tomo_init.zrt.jpg in this folder. Otherwise, something is wrong.
 
