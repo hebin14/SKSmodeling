@@ -2,9 +2,8 @@
 #
 # Meshing input parameters
 #
-#-----------------------------------------------------------
-
-# coordinates of mesh block in latitude/longitude and depth in km    
+#----------------------------------------------------------- 
+# coordinates of mesh block in latitude/longitude and depth in km
 LATITUDE_MIN                    = 38.75 
 LATITUDE_MAX                    = 40.75
 LONGITUDE_MIN                   = 140.
@@ -41,7 +40,8 @@ USE_REGULAR_MESH                = .true.
 NDOUBLINGS                      = 1
 # NZ_DOUBLING_1 is the parameter to set up if there is only one doubling layer
 # (more doubling entries can be added if needed to match NDOUBLINGS value)
-NZ_DOUBLING_1                   = 40
+NZ_DOUBLING_1                   = 11
+NZ_DOUBLING_2                   = 0
 
 #-----------------------------------------------------------
 #
@@ -64,9 +64,9 @@ LOCAL_PATH                      = ./OUTPUT_FILES/DATABASES_MPI
 #-----------------------------------------------------------
 
 # CPML perfectly matched absorbing layers
-THICKNESS_OF_X_PML              = 12.3d0
-THICKNESS_OF_Y_PML              = 12.3d0
-THICKNESS_OF_Z_PML              = 12.3d0
+THICKNESS_OF_X_PML              = 0.08d0
+THICKNESS_OF_Y_PML              = 0.08d0
+THICKNESS_OF_Z_PML              = 0.08d0
 
 #-----------------------------------------------------------
 #
@@ -75,16 +75,16 @@ THICKNESS_OF_Z_PML              = 12.3d0
 #-----------------------------------------------------------
 
 # number of materials
-NMATERIALS                      = 3
+NMATERIALS                      = 1
 # define the different materials in the model as:
 # #material_id  #rho  #vp  #vs  #Q_Kappa  #Q_mu  #anisotropy_flag  #domain_id
 #     Q_Kappa          : Q_Kappa attenuation quality factor
 #     Q_mu             : Q_mu attenuation quality factor
 #     anisotropy_flag  : 0 = no anisotropy / 1,2,... check the implementation in file aniso_model.f90
-#     domain_id        : 1 = acoustic / 2 = elastic
-1 2720.000 5800.000 3460.000 9999.0 9999.0 0  2
-2 3319.80  8040.000 4490.00  9999.0 9999.0 0  2
-3 3425.80  8300.000 4518.00  9999.0 9999.0 0  2
+#     domain_id        : 1 = acoustic / 2 = elastic / 3 = poroelastic
+1  2720.000 5800.000 3460.00  9999. 9999.  1  2
+#2  2920.000 6500.000 3850.00  9999. 9999.  2  2
+
 
 #-----------------------------------------------------------
 #
@@ -97,3 +97,5 @@ NREGIONS                        = 1
 # define the different regions of the model as :
 #NEX_XI_BEGIN  #NEX_XI_END  #NEX_ETA_BEGIN  #NEX_ETA_END  #NZ_BEGIN #NZ_END  #material_id
 1              25            1                  32            1      41       1
+
+

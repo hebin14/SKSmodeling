@@ -1,4 +1,4 @@
-running example: Sun Oct  1 23:07:10 EDT 2023
+running example: Mon Oct 16 00:07:14 EDT 2023
 /gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_japan
 
   running mesher on  40 processors...
@@ -6,29 +6,23 @@ running example: Sun Oct  1 23:07:10 EDT 2023
 
   running database generation on  40 processors...
 
- full anisotropy
 
   running solver on  40 processors...
 
+slurmstepd: error: *** JOB 10928300 ON nia0001 CANCELLED AT 2023-10-16T00:08:24 ***
 
-see results in directory: OUTPUT_FILES/
-
-done
-rm: cannot remove ‘shot*’: No such file or directory
-Sun Oct 1 23:09:51 EDT 2023
-
-scontrol show jobid 10819032
-JobId=10819032 JobName=sks_tomo
+scontrol show jobid 10928300
+JobId=10928300 JobName=sks_tomo
    UserId=binhe(3097241) GroupId=liuqy(6000084) MCS_label=N/A
-   Priority=10713472 Nice=0 Account=rrg-liuqy QOS=normal
+   Priority=10862832 Nice=0 Account=rrg-liuqy QOS=normal
    JobState=COMPLETING Reason=None Dependency=(null)
-   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
-   RunTime=00:02:45 TimeLimit=01:00:00 TimeMin=N/A
-   SubmitTime=2023-10-01T23:07:05 EligibleTime=2023-10-01T23:07:05
-   AccrueTime=2023-10-01T23:07:05
-   StartTime=2023-10-01T23:07:06 EndTime=2023-10-01T23:09:51 Deadline=N/A
-   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-01T23:07:06 Scheduler=Main
-   Partition=debug AllocNode:Sid=nia-login06:249713
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:15
+   RunTime=00:01:14 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2023-10-16T00:06:41 EligibleTime=2023-10-16T00:06:41
+   AccrueTime=2023-10-16T00:06:41
+   StartTime=2023-10-16T00:07:10 EndTime=2023-10-16T00:08:24 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-16T00:07:10 Scheduler=Main
+   Partition=debug AllocNode:Sid=nia-login05:91391
    ReqNodeList=(null) ExcNodeList=(null)
    NodeList=nia0001
    BatchHost=nia0001
@@ -48,9 +42,9 @@ JobId=10819032 JobName=sks_tomo
    Power=
    
 
-sacct -j 10819032
+sacct -j 10928300
 JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
 ------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
-10819032       sks_tomo  rrg-liuqy   00:02:45                        02:04.532   01:41:45      0:0 
-10819032.ba+      batch  rrg-liuqy   00:02:45  55354956K  19923296K  02:04.531   01:41:45      0:0 
-10819032.ex+     extern  rrg-liuqy   00:02:45    148744K       900K   00:00:00   00:00:00      0:0 
+10928300       sks_tomo  rrg-liuqy   00:01:14                        01:19.600  01:31.137      0:0 
+10928300.ba+      batch  rrg-liuqy   00:01:16  57787592K  19725104K  01:19.599  01:31.136     0:15 
+10928300.ex+     extern  rrg-liuqy   00:01:14    148744K      1080K   00:00:00   00:00:00      0:0 

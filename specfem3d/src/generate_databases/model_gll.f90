@@ -1,7 +1,7 @@
 !=====================================================================
 !
-!               S p e c f e m 3 D  V e r s i o n  3 . 0
-!               ---------------------------------------
+!                          S p e c f e m 3 D
+!                          -----------------
 !
 !     Main historical authors: Dimitri Komatitsch and Jeroen Tromp
 !                              CNRS, France
@@ -34,7 +34,7 @@
 ! used for iterative inversion procedures
 !
 !--------------------------------------------------------------------------------------------------
-  ! Bin He added, leave this for isotropic gll model
+
   subroutine model_gll(myrank,nspec,LOCAL_PATH)
 
   use constants, only: NGLLX,NGLLY,NGLLZ,FOUR_THIRDS,IMAIN,MAX_STRING_LEN,IIN
@@ -60,34 +60,63 @@
 
   ! processors name
   write(prname_lp,'(a,i6.6,a)') trim(LOCAL_PATH)// '/' //'proc',myrank,'_'
- 
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!! if only vp structure is available (as is often the case in exploration seismology),
+  !!! use lines for vp only
 
   ! density
   allocate(rho_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
   if (ier /= 0) call exit_MPI_without_rank('error allocating array 647')
   if (ier /= 0) stop 'error allocating array rho_read'
 
-  ! vp
-  allocate(vp_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-  if (ier /= 0) call exit_MPI_without_rank('error allocating array 648')
-  if (ier /= 0) stop 'error allocating array vp_read'
-
- ! vs
-  allocate(vs_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-  if (ier /= 0) call exit_MPI_without_rank('error allocating array 649')
-  if (ier /= 0) stop 'error allocating array vs_read'
-
   ! user output
-  if (myrank == 0) write(IMAIN,*) '     reading in: vpvsrho.bin'
+  if (myrank == 0) write(IMAIN,*) '     reading in: rho.bin'
 
-  filename = prname_lp(1:len_trim(prname_lp))//'vpvsrho.bin'
+  filename = prname_lp(1:len_trim(prname_lp))//'rho.bin'
   open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
   if (ier /= 0) then
     print *,'error opening file: ',trim(filename)
     stop 'error reading rho.bin file'
   endif
 
-  read(IIN) vp_read,vs_read,rho_read
+  read(IIN) rho_read
+  close(IIN)
+
+  ! vp
+  allocate(vp_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
+  if (ier /= 0) call exit_MPI_without_rank('error allocating array 648')
+  if (ier /= 0) stop 'error allocating array vp_read'
+
+  ! user output
+  if (myrank == 0) write(IMAIN,*) '     reading in: vp.bin'
+
+  filename = prname_lp(1:len_trim(prname_lp))//'vp.bin'
+  open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
+  if (ier /= 0) then
+    print *,'error opening file: ',trim(filename)
+    stop 'error reading vp.bin file'
+  endif
+
+  read(IIN) vp_read
+  close(IIN)
+
+  ! vs
+  allocate(vs_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
+  if (ier /= 0) call exit_MPI_without_rank('error allocating array 649')
+  if (ier /= 0) stop 'error allocating array vs_read'
+
+  ! user output
+  if (myrank == 0) write(IMAIN,*) '     reading in: vs.bin'
+
+  filename = prname_lp(1:len_trim(prname_lp))//'vs.bin'
+  open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
+  if (ier /= 0) then
+    print *,'error opening file: ',trim(filename)
+    stop 'error reading vs.bin file'
+  endif
+
+  read(IIN) vs_read
   close(IIN)
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -162,179 +191,4 @@
   deallocate(rho_read,vp_read,vs_read)
 
   end subroutine model_gll
-
-
-  ! Bin He added, leave this for isotropic gll model
-  subroutine model_gll_aniso(myrank,nspec,LOCAL_PATH)
-
-    use constants, only: NGLLX,NGLLY,NGLLZ,FOUR_THIRDS,IMAIN,MAX_STRING_LEN,IIN
-  
-    use generate_databases_par, only: ATTENUATION,TRANSVERSE_ANISOTROPY,AZIMUTH_ANISOTROPY
-  
-    use create_regions_mesh_ext_par, only: rhostore,c11store,c12store,c13store,c14store,c15store,c16store,&
-                                                             c22store,c23store,c24store,c25store,c26store,&
-                                                             c33store,c34store,c35store,c36store,c44store, &
-                                                             c45store,c46store,c55store,c56store,c66store
-  
-    implicit none
-  
-    integer, intent(in) :: myrank,nspec
-    character(len=MAX_STRING_LEN) :: LOCAL_PATH
-  
-    ! local parameters
-    real, dimension(:,:,:,:),allocatable :: vpv_read,vph_read,rho_read,vsv_read,vsh_read,gc_read,gs_read
-    real, dimension(:,:,:,:),allocatable :: c11_read,c12_read,c13_read,c14_read,c15_read,c16_read,c22_read,c23_read, &
-                                            c24_read,c25_read,c26_read,c33_read,c34_read,c35_read,c36_read,c44_read, &
-                                            c45_read,c46_read,c55_read,c56_read,c66_read
-    integer :: ier,i,j,k,ispec
-    character(len=MAX_STRING_LEN) :: prname_lp,filename
-    
-    ! user output
-    if (myrank == 0) then
-      write(IMAIN,*) '     using GLL model from: ',trim(LOCAL_PATH)
-    endif
-  
-    ! processors name
-    write(prname_lp,'(a,i6.6,a)') trim(LOCAL_PATH)// '/' //'proc',myrank,'_'
-   
-  
-    ! density gc and gs
-    allocate(rho_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(gc_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(gs_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    if (ier /= 0) call exit_MPI_without_rank('error allocating array 647')
-    if (ier /= 0) stop 'error allocating array rho, gc, gs read'
-  
-    ! vp vs
-    allocate(vpv_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(vph_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(vsv_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(vsh_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    if (ier /= 0) call exit_MPI_without_rank('error allocating array 648')
-    if (ier /= 0) stop 'error allocating array vp, vs read'
-  
-    ! c21
-    
-    allocate(c11_read(NGLLX,NGLLY,NGLLZ,nspec),c12_read(NGLLX,NGLLY,NGLLZ,nspec),c13_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c14_read(NGLLX,NGLLY,NGLLZ,nspec),c15_read(NGLLX,NGLLY,NGLLZ,nspec),c16_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c22_read(NGLLX,NGLLY,NGLLZ,nspec),c23_read(NGLLX,NGLLY,NGLLZ,nspec),c24_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c25_read(NGLLX,NGLLY,NGLLZ,nspec),c26_read(NGLLX,NGLLY,NGLLZ,nspec),c33_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c34_read(NGLLX,NGLLY,NGLLZ,nspec),c35_read(NGLLX,NGLLY,NGLLZ,nspec),c36_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c44_read(NGLLX,NGLLY,NGLLZ,nspec),c45_read(NGLLX,NGLLY,NGLLZ,nspec),c46_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    allocate(c55_read(NGLLX,NGLLY,NGLLZ,nspec),c56_read(NGLLX,NGLLY,NGLLZ,nspec),c66_read(NGLLX,NGLLY,NGLLZ,nspec),stat=ier)
-    if (ier /= 0) call exit_MPI_without_rank('error allocating array 649')
-    if (ier /= 0) stop 'error allocating array vs_read'
-      
-    
-    if(TRANSVERSE_ANISOTROPY)then
-      ! user output
-      if (myrank == 0) write(IMAIN,*) '     reading in: vpvhvsvhrho.bin'
-      filename = prname_lp(1:len_trim(prname_lp))//'vpvhvsvhrho.bin'
-      open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
-      if (ier /= 0) then
-        print *,'error opening file: ',trim(filename)
-        stop 'error reading vpvhvsvhrho.bin file'
-      endif
-      read(IIN) vpv_read,vph_read,vsv_read,vsh_read,rho_read
-      close(IIN)
-      do ispec=1,nspec
-        do k=1,NGLLZ
-          do j=1,NGLLY
-            do i=1,NGLLX
-              call aniso_model_to_C21(vpv_read(i,j,k,ispec),vph_read(i,j,k,ispec),vsv_read(i,j,k,ispec),vsh_read(i,j,k,ispec),&
-                                      rho_read(i,j,k,ispec),0.,0.,c11store(i,j,k,ispec),c12store(i,j,k,ispec),c13store(i,j,k,ispec),&
-                                      c14store(i,j,k,ispec),c15store(i,j,k,ispec),c16store(i,j,k,ispec),c22store(i,j,k,ispec),&
-                                      c23store(i,j,k,ispec),c24store(i,j,k,ispec),c25store(i,j,k,ispec),c26store(i,j,k,ispec),&
-                                      c33store(i,j,k,ispec),c34store(i,j,k,ispec),c35store(i,j,k,ispec),c36store(i,j,k,ispec),&
-                                      c44store(i,j,k,ispec),c45store(i,j,k,ispec),c46store(i,j,k,ispec),c55store(i,j,k,ispec),&
-                                      c56store(i,j,k,ispec),c66store(i,j,k,ispec))
-            enddo
-          enddo
-        enddo
-      enddo
-      !rhostore = rho_read
-    else if(AZIMUTH_ANISOTROPY)then
-      if (myrank == 0) write(IMAIN,*) '     reading in: vpvhvsvhrhogcgs.bin'
-      filename = prname_lp(1:len_trim(prname_lp))//'vpvhvsvhrhogcgs.bin'
-      open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
-      if (ier /= 0) then
-        print *,'error opening file: ',trim(filename)
-        stop 'error reading vpvhvsvhrhogcgs.bin file'
-      endif
-      read(IIN) vpv_read,vph_read,vsv_read,vsh_read,rho_read,gc_read,gs_read
-      close(IIN)
-      do ispec=1,nspec
-        do k=1,NGLLZ
-          do j=1,NGLLY
-            do i=1,NGLLX
-              call aniso_model_to_C21(vpv_read(i,j,k,ispec),vph_read(i,j,k,ispec),vsv_read(i,j,k,ispec),vsh_read(i,j,k,ispec),&
-                                      rho_read(i,j,k,ispec),gc_read(i,j,k,ispec),gs_read(i,j,k,ispec),c11store(i,j,k,ispec), &
-                                      c12store(i,j,k,ispec),c13store(i,j,k,ispec),c14store(i,j,k,ispec),c15store(i,j,k,ispec),&
-                                      c16store(i,j,k,ispec),c22store(i,j,k,ispec),c23store(i,j,k,ispec),c24store(i,j,k,ispec),&
-                                      c25store(i,j,k,ispec),c26store(i,j,k,ispec),c33store(i,j,k,ispec),c34store(i,j,k,ispec),&
-                                      c35store(i,j,k,ispec),c36store(i,j,k,ispec),c44store(i,j,k,ispec),c45store(i,j,k,ispec),&
-                                      c46store(i,j,k,ispec),c55store(i,j,k,ispec),c56store(i,j,k,ispec),c66store(i,j,k,ispec))
-            enddo
-          enddo
-        enddo
-      enddo
-      !rhostore = rho_read
-    else
-      if (myrank == 0) write(IMAIN,*) '     reading in: c21.bin'
-      filename = prname_lp(1:len_trim(prname_lp))//'c21.bin'
-      open(unit=IIN,file=trim(filename),status='old',action='read',form='unformatted',iostat=ier)
-      if (ier /= 0) then
-        print *,'error opening file: ',trim(filename)
-        stop 'error reading c21.bin file'
-      endif
-      read(IIN) c11_read,c12_read,c13_read,c14_read,c15_read,c16_read,c22_read,c23_read, &
-                c24_read,c25_read,c26_read,c33_read,c34_read,c35_read,c36_read,c44_read, &
-                c45_read,c46_read,c55_read,c56_read,c66_read,rho_read
-      close(IIN)
-      c11store = c11_read
-      c12store = c12_read
-      c13store = c13_read
-      c14store = c14_read
-      c15store = c15_read
-      c16store = c16_read
-      c22store = c22_read
-      c23store = c23_read
-      c24store = c24_read
-      c25store = c25_read
-      c26store = c26_read
-      c33store = c33_read
-      c34store = c34_read
-      c35store = c35_read
-      c36store = c36_read
-      c44store = c44_read
-      c45store = c45_read
-      c46store = c46_read
-      c55store = c55_read
-      c56store = c56_read
-      c66store = c66_read
-      rhostore = rho_read
-    endif
-    ! user output
-    if (myrank == 0) then
-      write(IMAIN,*) ' GLL Aniso parameter check....by BinHe '
-      write(IMAIN,*) ' max/min Gc :' ,maxval((c44store-c55store)/(c44store+c55store+1.0e-20)),&
-                                      minval((c44store-c55store)/(c44store+c55store+1.0e-20))
-      write(IMAIN,*) ' max/min Gs :' ,maxval((c45store+c45store)/(c44store+c55store+1.0e-20)),&
-                                      minval((c45store+c45store)/(c44store+c55store+1.0e-20))
-      write(IMAIN,*) ' max/min vpv :',sqrt(maxval((c11store+c22store)/rhostore*0.5)),&
-                                      sqrt(maxval((c11store+c22store)/rhostore*0.5))
-      write(IMAIN,*) ' max/min vsv :',sqrt(maxval((c44store+c55store)/rhostore*0.5)),&
-                                      sqrt(maxval((c44store+c55store)/rhostore*0.5))
-      write(IMAIN,*) ' max/min vph :',sqrt(maxval((c33store+c33store)/rhostore*0.5)),&
-                                      sqrt(maxval((c33store+c33store)/rhostore*0.5))
-      write(IMAIN,*) ' max/min vsh :',sqrt(maxval((c66store+c66store)/rhostore*0.5)),&
-                                      sqrt(maxval((c66store+c66store)/rhostore*0.5))
-      call flush_IMAIN()
-    endif
-    ! free memory
-    deallocate(rho_read,vpv_read,vsv_read,vph_read,vsh_read,gc_read,gs_read)
-    deallocate(c11_read,c12_read,c13_read,c14_read,c15_read,c16_read,c22_read,c23_read)
-    deallocate(c24_read,c25_read,c26_read,c33_read,c34_read,c35_read,c36_read,c44_read)
-    deallocate(c45_read,c46_read,c55_read,c56_read,c66_read)
-    end subroutine model_gll_aniso
 

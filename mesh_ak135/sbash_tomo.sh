@@ -20,7 +20,7 @@ echo $currentdir
 MYSEM3D=../specfem3d
 #module load intel/18.0.2.199  mvapich2/2.3.1 
 #ml intel impi
-ml intel openmpi
+ml gcc openmpi
 
 # stores setup
 cp DATA/meshfem3D_files/Mesh_Par_file OUTPUT_FILES/

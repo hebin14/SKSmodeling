@@ -1,4 +1,4 @@
-running example: Sun Oct  1 22:57:47 EDT 2023
+running example: Sun Oct 15 23:33:38 EDT 2023
 /gpfs/fs0/scratch/l/liuqy/binhe/AZanimodeling/mesh_ak135
 
   running mesher on  40 processors...
@@ -6,7 +6,6 @@ running example: Sun Oct  1 22:57:47 EDT 2023
 
   running database generation on  40 processors...
 
- full anisotropy
 
   running solver on  40 processors...
 
@@ -15,20 +14,20 @@ see results in directory: OUTPUT_FILES/
 
 done
 rm: cannot remove ‘shot*’: No such file or directory
-Sun Oct 1 22:59:25 EDT 2023
+Sun Oct 15 23:35:47 EDT 2023
 
-scontrol show jobid 10819019
-JobId=10819019 JobName=sks_tomo
+scontrol show jobid 10927893
+JobId=10927893 JobName=sks_tomo
    UserId=binhe(3097241) GroupId=liuqy(6000084) MCS_label=N/A
-   Priority=10713472 Nice=0 Account=rrg-liuqy QOS=normal
+   Priority=10862832 Nice=0 Account=rrg-liuqy QOS=normal
    JobState=COMPLETING Reason=None Dependency=(null)
    Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
-   RunTime=00:01:42 TimeLimit=01:00:00 TimeMin=N/A
-   SubmitTime=2023-10-01T22:57:42 EligibleTime=2023-10-01T22:57:42
-   AccrueTime=2023-10-01T22:57:42
-   StartTime=2023-10-01T22:57:43 EndTime=2023-10-01T22:59:25 Deadline=N/A
-   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-01T22:57:43 Scheduler=Main
-   Partition=debug AllocNode:Sid=nia-login06:85249
+   RunTime=00:02:13 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2023-10-15T23:33:22 EligibleTime=2023-10-15T23:33:22
+   AccrueTime=2023-10-15T23:33:22
+   StartTime=2023-10-15T23:33:34 EndTime=2023-10-15T23:35:47 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-15T23:33:34 Scheduler=Main
+   Partition=debug AllocNode:Sid=nia-login05:91391
    ReqNodeList=(null) ExcNodeList=(null)
    NodeList=nia0001
    BatchHost=nia0001
@@ -48,9 +47,9 @@ JobId=10819019 JobName=sks_tomo
    Power=
    
 
-sacct -j 10819019
+sacct -j 10927893
 JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
 ------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
-10819019       sks_tomo  rrg-liuqy   00:01:42                        02:05.604   01:00:26      0:0 
-10819019.ba+      batch  rrg-liuqy   00:01:42  55339904K  19920144K  02:05.604   01:00:26      0:0 
-10819019.ex+     extern  rrg-liuqy   00:01:42    148744K      1080K   00:00:00   00:00:00      0:0 
+10927893       sks_tomo  rrg-liuqy   00:02:13                        02:12.631   01:20:15      0:0 
+10927893.ba+      batch  rrg-liuqy   00:02:13  57801284K  19775276K  02:12.630   01:20:15      0:0 
+10927893.ex+     extern  rrg-liuqy   00:02:13    148744K       896K   00:00:00   00:00:00      0:0 

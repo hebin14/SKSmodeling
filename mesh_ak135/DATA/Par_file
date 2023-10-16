@@ -27,7 +27,7 @@ NPROC                           = 40
 
 # time step parameters
 NSTEP                           = 3000
-DT                              = 0.06
+DT                              = 6.0e-2
 
 # set to true to use local-time stepping (LTS)
 LTS_MODE                        = .false.
@@ -77,16 +77,16 @@ APPROXIMATE_OCEAN_LOAD          = .false.
 TOPOGRAPHY                      = .false.
 ATTENUATION                     = .false.
 ANISOTROPY                      = .true.
-TRANSVERSE_ANISOTROPY           = .false.
 AZIMUTH_ANISOTROPY              = .true.
+TRANSVERSE_ANISOTROPY           = .false.
 GRAVITY                         = .false.
 
 # in case of attenuation, reference frequency in Hz at which the velocity values in the velocity model are given (unused otherwise)
-ATTENUATION_f0_REFERENCE        = 0.33333
+ATTENUATION_f0_REFERENCE        = 0.33333d0
 
 # attenuation period range over which we try to mimic a constant Q factor
-MIN_ATTENUATION_PERIOD          = 999999998
-MAX_ATTENUATION_PERIOD          = 999999999.0
+MIN_ATTENUATION_PERIOD          = 999999998.d0
+MAX_ATTENUATION_PERIOD          = 999999999.d0
 # ignore this range and ask the code to compute it automatically instead based on the estimated resolution of the mesh (use this unless you know what you are doing)
 COMPUTE_FREQ_BAND_AUTOMATIC     = .true.
 
@@ -109,7 +109,7 @@ PML_CONDITIONS                  = .false.
 PML_INSTEAD_OF_FREE_SURFACE     = .false.
 
 # C-PML dominant frequency
-f0_FOR_PML                      = 12.7
+f0_FOR_PML                      = 0.5
 
 # parameters used to rotate C-PML boundary conditions by a given angle (not completed yet)
 # ROTATE_PML_ACTIVATE           = .false.
@@ -157,7 +157,7 @@ MOVIE_TYPE                      = 1
 MOVIE_VOLUME                    = .false.
 SAVE_DISPLACEMENT               = .false.
 USE_HIGHRES_FOR_MOVIES          = .false.
-NTSTEP_BETWEEN_FRAMES           = 500
+NTSTEP_BETWEEN_FRAMES           = 200
 HDUR_MOVIE                      = 0.0
 
 # save AVS or OpenDX mesh files to check the mesh
@@ -183,8 +183,9 @@ USE_SOURCES_RECEIVERS_Z         = .false.
 # in which the source is a vertical force, normal force, tilted force, impact etc.
 # If this flag is turned on, the FORCESOLUTION file must be edited by giving:
 # - the corresponding time-shift parameter,
-# - the half duration parameter of the source,
+# - the half duration (hdur, in s) for Gaussian/Step function, dominant frequency (f0, in Hz) for Ricker,
 # - the coordinates of the source,
+# - the source time function type (0=Gaussian function, 1=Ricker wavelet, 2=Step function),
 # - the magnitude of the force source,
 # - the components of a (non necessarily unitary) direction vector for the force source in the E/N/Z_UP basis.
 # The direction vector is made unitary internally in the code and thus only its direction matters here;
@@ -193,19 +194,24 @@ USE_FORCE_POINT_SOURCE          = .true.
 
 # set to true to use a Ricker source time function instead of the source time functions set by default
 # to represent a (tilted) FORCESOLUTION force point source or a CMTSOLUTION moment-tensor source.
-USE_RICKER_TIME_FUNCTION        = .true.
+USE_RICKER_TIME_FUNCTION        = .false.
 
-# Use an external source time function.
-# if .true. you must add a file with your source time function and the file name
-# path relative to lauching directory at the end of CMTSOLUTION or FORCESOURCE file
+# use an external source time function
+# you must add a file with your source time function and the file name path
+# relative to working directory at the end of CMTSOLUTION or FORCESOLUTION file
 # (with multiple sources, one file per source is required).
-# This file must have a single column containing the amplitude of the source at that time step,
-# and on its first line it must contain the time step used, which must be equal to DT as defined at the beginning of this Par_file (the code will check that).
-# Be sure when this option is .false. to remove the name of stf file in CMTSOLUTION or FORCESOURCE
+# This file must have a single column containing the amplitudes of the source at all time steps;
+# time step size used must be equal to DT as defined at the beginning of this Par_file.
+# Be sure when this option is .false. to remove the name of stf file in CMTSOLUTION or FORCESOLUTION
 USE_EXTERNAL_SOURCE_FILE        = .false.
 
 # print source time function
-PRINT_SOURCE_TIME_FUNCTION      = .true.
+PRINT_SOURCE_TIME_FUNCTION      = .false.
+
+# source encoding
+# (for acoustic simulations only for now) determines source encoding factor +/-1 depending on sign of moment tensor
+# (see e.g. Krebs et al., 2009. Fast full-wavefield seismic inversion using encoded sources, Geophysics, 74 (6), WCC177-WCC188.)
+USE_SOURCE_ENCODING             = .false.
 
 #-----------------------------------------------------------
 #
@@ -215,6 +221,10 @@ PRINT_SOURCE_TIME_FUNCTION      = .true.
 
 # interval in time steps for writing of seismograms
 NTSTEP_BETWEEN_OUTPUT_SEISMOS   = 10000
+
+# set to n to reduce the sampling rate of output seismograms by a factor of n
+# defaults to 1, which means no down-sampling
+NTSTEP_BETWEEN_OUTPUT_SAMPLE    = 1
 
 # decide if we save displacement, velocity, acceleration and/or pressure in forward runs (they can be set to true simultaneously)
 # currently pressure seismograms are implemented in acoustic (i.e. fluid) elements only
@@ -226,9 +236,6 @@ SAVE_SEISMOGRAMS_PRESSURE       = .false.   # currently implemented in acoustic 
 # save seismograms also when running the adjoint runs for an inverse problem
 # (usually they are unused and not very meaningful, leave this off in almost all cases)
 SAVE_SEISMOGRAMS_IN_ADJOINT_RUN = .false.
-
-# subsampling of the seismograms to create smaller files (but less accurately sampled in time)
-subsamp_seismos                 = 1
 
 # save seismograms in binary or ASCII format (binary is smaller but may not be portable between machines)
 USE_BINARY_FOR_SEISMOGRAMS      = .false.
@@ -257,16 +264,6 @@ USE_TRICK_FOR_BETTER_PRESSURE   = .false.
 
 #-----------------------------------------------------------
 #
-# Source encoding
-#
-#-----------------------------------------------------------
-
-# (for acoustic simulations only for now) determines source encoding factor +/-1 depending on sign of moment tensor
-# (see e.g. Krebs et al., 2009. Fast full-wavefield seismic inversion using encoded sources, Geophysics, 74 (6), WCC177-WCC188.)
-USE_SOURCE_ENCODING             = .false.
-
-#-----------------------------------------------------------
-#
 # Energy calculation
 #
 #-----------------------------------------------------------
@@ -284,7 +281,7 @@ NTSTEP_BETWEEN_OUTPUT_ENERGY    = 10
 #-----------------------------------------------------------
 
 # interval in time steps for reading adjoint traces
-# 0 = read the whole adjoint sources at the same time
+# 0 = read the whole adjoint sources at start time
 NTSTEP_BETWEEN_READ_ADJSRC      = 0
 
 # read adjoint sources using ASDF (requires asdf-library)
@@ -298,11 +295,6 @@ ANISOTROPIC_KL                  = .false.
 # compute transverse isotropic kernels (alpha_v,alpha_h,beta_v,beta_h,eta,rho)
 # rather than fully anisotropic kernels in case ANISOTROPIC_KL is set to .true.
 SAVE_TRANSVERSE_KL              = .false.
-
-# BinHe added 2023-04-07
-# compute azimuthal isotropic kernels (alpha_v,alpha_h,beta_v,beta_h,eta,rho,gc and gs)
-# rather than fully anisotropic kernels in case ANISOTROPIC_KL is set to .true.
-SAVE_AZIMUTH_KL              = .false.
 
 # this parameter must be set to .true. to compute anisotropic kernels for
 # cost function using velocity observable rather than displacement
@@ -322,13 +314,17 @@ SAVE_MOHO_MESH                  = .false.
 COUPLE_WITH_INJECTION_TECHNIQUE = .true.
 INJECTION_TECHNIQUE_TYPE        = 3   # 1 = DSM, 2 = AxiSEM, 3 = FK
 MESH_A_CHUNK_OF_THE_EARTH       = .false.
-TRACTION_PATH                   = ./DATA/AxiSEM_tractions/1/
-FKMODEL_FILE                    = DATA/FKmodel
+TRACTION_PATH                   = ./DATA/AxiSEM_tractions/3/
+FKMODEL_FILE                    = ./DATA/FKmodel
 RECIPROCITY_AND_KH_INTEGRAL     = .false.   # does not work yet
 
 #-----------------------------------------------------------
+#
+# Run modes
+#
+#-----------------------------------------------------------
 
-# Dimitri Komatitsch, July 2014, CNRS Marseille, France:
+# Simultaneous runs
 # added the ability to run several calculations (several earthquakes)
 # in an embarrassingly-parallel fashion from within the same run;
 # this can be useful when using a very large supercomputer to compute
@@ -386,3 +382,5 @@ ADIOS_FOR_DATABASES             = .false.
 ADIOS_FOR_MESH                  = .false.
 ADIOS_FOR_FORWARD_ARRAYS        = .false.
 ADIOS_FOR_KERNELS               = .false.
+ADIOS_FOR_UNDO_ATTENUATION      = .false.
+

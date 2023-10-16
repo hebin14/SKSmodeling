@@ -31,18 +31,18 @@ output ascii file = ./input/profB.true.M00
  finished finding local distmin
  Writing out gmt file ...
 
-scontrol show jobid 10819048
-JobId=10819048 JobName=get_abs_profile_aziso.sh
+scontrol show jobid 10928303
+JobId=10928303 JobName=get_abs_profile_aziso.sh
    UserId=binhe(3097241) GroupId=liuqy(6000084) MCS_label=N/A
-   Priority=10713472 Nice=0 Account=rrg-liuqy QOS=normal
+   Priority=10862832 Nice=0 Account=rrg-liuqy QOS=normal
    JobState=COMPLETING Reason=None Dependency=(null)
    Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
-   RunTime=00:00:13 TimeLimit=01:00:00 TimeMin=N/A
-   SubmitTime=2023-10-01T23:17:34 EligibleTime=2023-10-01T23:17:34
-   AccrueTime=2023-10-01T23:17:34
-   StartTime=2023-10-01T23:17:35 EndTime=2023-10-01T23:17:48 Deadline=N/A
-   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-01T23:17:35 Scheduler=Main
-   Partition=debug AllocNode:Sid=nia-login06:249713
+   RunTime=00:00:18 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2023-10-16T00:08:43 EligibleTime=2023-10-16T00:08:43
+   AccrueTime=2023-10-16T00:08:43
+   StartTime=2023-10-16T00:08:43 EndTime=2023-10-16T00:09:01 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-10-16T00:08:43 Scheduler=Main
+   Partition=debug AllocNode:Sid=nia-login05:91391
    ReqNodeList=(null) ExcNodeList=(null)
    NodeList=nia0001
    BatchHost=nia0001
@@ -62,9 +62,9 @@ JobId=10819048 JobName=get_abs_profile_aziso.sh
    Power=
    
 
-sacct -j 10819048
+sacct -j 10928303
 JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
 ------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
-10819048     get_abs_p+  rrg-liuqy   00:00:13                        01:09.667  01:09.765      0:0 
-10819048.ba+      batch  rrg-liuqy   00:00:13    149044K      1604K  01:09.666  01:09.764      0:0 
-10819048.ex+     extern  rrg-liuqy   00:00:13    148744K       896K   00:00:00   00:00:00      0:0 
+10928303     get_abs_p+  rrg-liuqy   00:00:18                        01:20.672  01:15.684      0:0 
+10928303.ba+      batch  rrg-liuqy   00:00:18    149044K      1604K  01:20.671  01:15.684      0:0 
+10928303.ex+     extern  rrg-liuqy   00:00:18    148744K       896K   00:00:00   00:00:00      0:0 

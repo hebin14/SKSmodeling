@@ -1,7 +1,7 @@
 !=====================================================================
 !
-!               S p e c f e m 3 D  V e r s i o n  3 . 0
-!               ---------------------------------------
+!                          S p e c f e m 3 D
+!                          -----------------
 !
 !     Main historical authors: Dimitri Komatitsch and Jeroen Tromp
 !                              CNRS, France
@@ -131,7 +131,9 @@
 
   use constants, only: MAX_STRING_LEN,IIN,IMAIN
 
-  use generate_databases_par, only: TOMOGRAPHY_PATH,undef_mat_prop,nundefMat_ext_mesh
+  use generate_databases_par, only: nmat_ext_mesh, &
+                                    undef_mat_prop,nundefMat_ext_mesh, &
+                                    TOMOGRAPHY_PATH
 
   use model_tomography_par
 
@@ -139,11 +141,12 @@
 
   ! local parameters
   double precision :: dummy,temp_x,temp_y,temp_z
-  integer :: ier,iundef,nrecord_max,ifiles_tomo,nrec,nlines
+  integer :: ier,nrecord_max,ifiles_tomo,nrec,nlines
   character(len=MAX_STRING_LEN*2) :: tomo_filename
   character(len=MAX_STRING_LEN) :: filename
   character(len=MAX_STRING_LEN) :: string_read
-  integer :: nmaterials
+  character(len=5) :: filenumber
+  integer :: nmaterials,imat
   ! data format
   logical :: has_q_values
   integer :: ntokens
@@ -152,14 +155,21 @@
   ! sets number of materials to loop over
   nmaterials = nundefMat_ext_mesh
 
+  ! checks if we over-impose a tomography model by Par_file setting: MODEL = tomo
+  if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
+    ! number of materials
+    nmaterials = nmat_ext_mesh
+  endif
+
+  ! checks
+  if (nmaterials == 0) then
+    print *,'Error: invalid model setup for initializing tomography model. Needs at least one material.'
+    stop 'Error invalid material definitions for tomography model'
+  endif
+
   NFILES_TOMO = 0
   nrecord_max = 0
   ifiles_tomo = 0
-
-  ! checks if we over-impose a tomography model by Par_file setting: MODEL = tomo
-  if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
-    nmaterials = 1
-  endif
 
   ! data format flag
   allocate(materials_with_q(nmaterials),stat=ier)
@@ -168,19 +178,34 @@
   materials_with_q(:) = .false.
 
   ! loops over number of undefined materials
-  do iundef = 1, nmaterials
+  do imat = 1, nmaterials
 
     ! sets filename
     if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
       ! note: since we have no undefined materials, we cannot access undef_mat_prop(:,:) to read in values
-      ! uses default name
-      filename = 'tomography_model.xyz'
+      if (nmaterials == 1) then
+        ! single material for whole mesh, uses default name
+        filename = 'tomography_model.xyz'
+      else
+        ! multiple material layers
+        ! This uses a naming schema: 'tomography_model_??.xyz'
+        ! filenames are e.g.,: 'tomography_model_01.xyz' ...
+        !                      'tomography_model_02.xyz' ...
+        ! using the material number as additional file indicator.
+        ! that is, the first material defined becomes *_01.xyz,
+        !             second material defined becomes *_02.xyz etc.
+        !
+        ! - NOTE: the leading '0' before a two digit value. Assuming Users won't
+        !   have more than 99 separate materials/tomography models
+        write(filenumber, '(I2.2)') imat
+        filename = 'tomography_model_' // trim(filenumber) // '.xyz'
+      endif
     else
       ! checks if associated material is a tomography model
-      if (trim(undef_mat_prop(2,iundef)) /= 'tomography') cycle
+      if (trim(undef_mat_prop(2,imat)) /= 'tomography') cycle
 
       ! gets filename from material property
-      read(undef_mat_prop(4,iundef),*) filename
+      read(undef_mat_prop(4,imat),*) filename
     endif
 
     ! counter
@@ -233,7 +258,7 @@
     ! checks number of entries of first data line
     call tomo_get_number_of_tokens(string_read,ntokens)
     !print *,'tomography file: number of tokens on first data line: ',ntokens,' line: ',trim(string_read)
-    if (ntokens /= 6 .and. ntokens /= 8 .and. ntokens /= 9 .and. ntokens /= 11 .and. ntokens /= 25 .and. ntokens /= 27) then
+    if (ntokens /= 6 .and. ntokens /= 8 .and. ntokens /= 25 .and. ntokens /= 27) then
       print *,'Error reading tomography file, data line has wrong number of entries: ',trim(string_read)
       stop 'Error reading tomography file'
     endif
@@ -242,11 +267,6 @@
       if (ntokens == 6 .or. ntokens == 8) then
         print *,'Error reading tomography file, data line has wrong number of entries: ',trim(string_read)
         stop 'Error reading tomography file'
-      endif
-      if(myrank_tomo == 0)then
-      if(ntokens == 9) print*,'Tranverse anisotropy'
-      if(ntokens == 11) print*, 'Azimuth anisotropy'
-      if(ntokens == 25 .or. ntokens == 27) print*, 'full anisotropy'
       endif
     endif
 
@@ -304,7 +324,7 @@
   ! allocate models parameter records
   ! only allocate anisotropy arrays if needed
   if (ANISOTROPY .and. IMODEL == IMODEL_TOMO) then
-    allocate(c_tomography(NFILES_TOMO,nrecord_max,21),stat=ier)
+    allocate(c_tomography(21,NFILES_TOMO,nrecord_max),stat=ier)
     if (ier /= 0) call exit_MPI_without_rank('error allocating array 904X')
     if (ier /= 0) call exit_MPI(myrank_tomo,'not enough memory to allocate tomo anisotropy arrays')
   else
@@ -369,7 +389,7 @@ end subroutine init_tomography_files
 
   use constants, only: MAX_STRING_LEN,IIN,IMAIN
 
-  use generate_databases_par, only: TOMOGRAPHY_PATH,undef_mat_prop,nundefMat_ext_mesh
+  use generate_databases_par, only: TOMOGRAPHY_PATH,undef_mat_prop,nundefMat_ext_mesh,nmat_ext_mesh
 
   use model_tomography_par
 
@@ -380,11 +400,12 @@ end subroutine init_tomography_files
   real(kind=CUSTOM_REAL) :: qp_tomo,qs_tomo
   real(kind=CUSTOM_REAL) :: c11_tomo,c12_tomo,c13_tomo,c14_tomo,c15_tomo,c16_tomo,c22_tomo,c23_tomo,c24_tomo,c25_tomo,c26_tomo, &
                             c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo,c45_tomo,c46_tomo,c55_tomo,c56_tomo,c66_tomo
-  integer :: irecord,ier,iundef,imat
+  integer :: irecord,ier
   character(len=MAX_STRING_LEN*2) :: tomo_filename
   character(len=MAX_STRING_LEN) :: filename
   character(len=MAX_STRING_LEN) :: string_read
-  integer :: nmaterials
+  character(len=5) :: filenumber
+  integer :: nmaterials,imat
   logical :: has_q_values
 
   ! sets number of materials to loop over
@@ -392,23 +413,36 @@ end subroutine init_tomography_files
 
   ! checks if we over-impose a tomography model by Par_file setting: MODEL = tomo
   if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
-    nmaterials = 1
+    nmaterials = nmat_ext_mesh
   endif
 
-  imat = 0
-  do iundef = 1, nmaterials
-
+  do imat = 1, nmaterials
     ! sets filename
     if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
       ! note: since we have no undefined materials, we cannot access undef_mat_prop(:,:) to read in values
-      ! uses default name
-      filename = 'tomography_model.xyz'
+      if (nmaterials == 1) then
+        ! single material for whole mesh, uses default name
+        filename = 'tomography_model.xyz'
+      else
+        ! multiple material layers
+        ! This uses a naming schema: 'tomography_model_??.xyz'
+        ! filenames are e.g.,: 'tomography_model_01.xyz' ...
+        !                      'tomography_model_02.xyz' ...
+        ! using the material number as additional file indicator.
+        ! that is, the first material defined becomes *_01.xyz,
+        !             second material defined becomes *_02.xyz etc.
+        !
+        ! - NOTE: the leading '0' before a two digit value. Assuming Users won't
+        !   have more than 99 separate materials/tomography models
+        write(filenumber, '(I2.2)') imat
+        filename = 'tomography_model_' // trim(filenumber) // '.xyz'
+      endif
     else
       ! checks if associated material is a tomography model
-      if (trim(undef_mat_prop(2,iundef)) /= 'tomography') cycle
+      if (trim(undef_mat_prop(2,imat)) /= 'tomography') cycle
 
       ! gets filename from material property
-      read(undef_mat_prop(4,iundef),*) filename
+      read(undef_mat_prop(4,imat),*) filename
     endif
 
     ! sets filename with path (e.g. "DATA/tomo_files/" + "tomo.xyz")
@@ -419,14 +453,15 @@ end subroutine init_tomography_files
       tomo_filename = TOMOGRAPHY_PATH(1:len_trim(TOMOGRAPHY_PATH)) // '/' // trim(filename)
     endif
 
-    ! counter
-    imat = imat + 1
-
     ! user output
     if (myrank_tomo == 0) then
-       write(IMAIN,*) '     material id: ',-imat
-       write(IMAIN,*) '     file       : ',trim(tomo_filename)
-       call flush_IMAIN()
+      if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
+        write(IMAIN,*) '     material id: ',imat
+      else
+        write(IMAIN,*) '     material id: ',-imat
+      endif
+      write(IMAIN,*) '     file       : ',trim(tomo_filename)
+      call flush_IMAIN()
     endif
 
     ! opens file for reading
@@ -472,7 +507,7 @@ end subroutine init_tomography_files
     has_q_values = tomo_has_q_values(imat)
 
     if (ANISOTROPY .and. IMODEL == IMODEL_TOMO) then
-      
+      ! user output
       if (myrank_tomo == 0) then
         if (has_q_values) then
           write(IMAIN,*) '     data format: #x #y #z #c11 #c12 .... #c55 #c56 #c66 #density #Q_p #Q_s'
@@ -484,45 +519,30 @@ end subroutine init_tomography_files
         call flush_IMAIN()
       endif
 
-      
       ! reads in first data values
       if (has_q_values) then
         ! format: #x #y #z #c11 #c12 #c13 #c14 #c15 #c16 #c22 #c23 #c24 #c25 #c26 #c33 #c34 #c35 #c36 #c44 #c45 #c46 #c55 #c56 #c66
         !         #density #Q_p #Q_s
         read(string_read,*) x_tomo,y_tomo,z_tomo,c11_tomo,c12_tomo,c13_tomo,c14_tomo,c15_tomo,c16_tomo,c22_tomo,c23_tomo,c24_tomo, &
-                                                c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo,c45_tomo,c46_tomo, &
-                                                c55_tomo,c56_tomo,c66_tomo,rho_tomo,qp_tomo,qs_tomo
+                                                 c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo,c45_tomo,c46_tomo, &
+                                                 c55_tomo,c56_tomo,c66_tomo,rho_tomo,qp_tomo,qs_tomo
         qp_tomography(imat,1) = qp_tomo
         qs_tomography(imat,1) = qs_tomo
       else
         ! format: #x #y #z #c11 #c12 #c13 #c14 #c15 #c16 #c22 #c23 #c24 #c25 #c26 #c33 #c34 #c35 #c36 #c44 #c45 #c46 #c55 #c56 #c66
         !         #density
         read(string_read,*) x_tomo,y_tomo,z_tomo,c11_tomo,c12_tomo,c13_tomo,c14_tomo,c15_tomo,c16_tomo,c22_tomo,c23_tomo,c24_tomo, &
-                                                c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo,c45_tomo,c46_tomo, &
-                                                c55_tomo,c56_tomo,c66_tomo,rho_tomo
+                                                 c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo,c45_tomo,c46_tomo, &
+                                                 c55_tomo,c56_tomo,c66_tomo,rho_tomo
       endif
+
       ! stores record values
-      c_tomography(imat,1,1) = c11_tomo
-      c_tomography(imat,1,2) = c12_tomo
-      c_tomography(imat,1,3) = c13_tomo
-      c_tomography(imat,1,4) = c14_tomo
-      c_tomography(imat,1,5) = c15_tomo
-      c_tomography(imat,1,6) = c16_tomo
-      c_tomography(imat,1,7) = c22_tomo
-      c_tomography(imat,1,8) = c23_tomo
-      c_tomography(imat,1,9) = c24_tomo
-      c_tomography(imat,1,10) = c25_tomo
-      c_tomography(imat,1,11) = c26_tomo
-      c_tomography(imat,1,12) = c33_tomo
-      c_tomography(imat,1,13) = c34_tomo
-      c_tomography(imat,1,14) = c35_tomo
-      c_tomography(imat,1,15) = c36_tomo
-      c_tomography(imat,1,16) = c44_tomo
-      c_tomography(imat,1,17) = c45_tomo
-      c_tomography(imat,1,18) = c46_tomo
-      c_tomography(imat,1,19) = c55_tomo
-      c_tomography(imat,1,20) = c56_tomo
-      c_tomography(imat,1,21) = c66_tomo
+      c_tomography(:,imat,1) = (/ c11_tomo, c12_tomo, c13_tomo, c14_tomo, c15_tomo, c16_tomo, &
+                                        c22_tomo, c23_tomo, c24_tomo, c25_tomo, c26_tomo, &
+                                        c33_tomo, c34_tomo, c35_tomo, c36_tomo, &
+                                        c44_tomo, c45_tomo, c46_tomo, &
+                                        c55_tomo, c56_tomo, &
+                                        c66_tomo /)
 
       rho_tomography(imat,1) = rho_tomo
       z_tomography(imat,1) = z_tomo
@@ -533,32 +553,17 @@ end subroutine init_tomography_files
           !format: #x #y #z #c11 #c12 #c13 #c14 #c15 #c16 #c22 #c23 #c24 #c25 #c26 #c33 #c34 #c35 #c36 #c44 #c45 #c46 #c55 #c56 #c66
           !        #density #Q_p #Q_s
           read(IIN,*,iostat=ier) x_tomo,y_tomo,z_tomo,c11_tomo,c12_tomo,c13_tomo,c14_tomo,c15_tomo,c16_tomo,c22_tomo,c23_tomo, &
-                                                    c24_tomo,c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo, &
-                                                    c45_tomo,c46_tomo,c55_tomo,c56_tomo,c66_tomo,rho_tomo,qp_tomo,qs_tomo
+                                                      c24_tomo,c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo, &
+                                                      c45_tomo,c46_tomo,c55_tomo,c56_tomo,c66_tomo,rho_tomo,qp_tomo,qs_tomo
           if (ier /= 0) stop 'Error reading tomo file line format with q values'
 
           ! stores record values
-          c_tomography(imat,irecord,1) = c11_tomo
-          c_tomography(imat,irecord,2) = c12_tomo
-          c_tomography(imat,irecord,3) = c13_tomo
-          c_tomography(imat,irecord,4) = c14_tomo
-          c_tomography(imat,irecord,5) = c15_tomo
-          c_tomography(imat,irecord,6) = c16_tomo
-          c_tomography(imat,irecord,7) = c22_tomo
-          c_tomography(imat,irecord,8) = c23_tomo
-          c_tomography(imat,irecord,9) = c24_tomo
-          c_tomography(imat,irecord,10) = c25_tomo
-          c_tomography(imat,irecord,11) = c26_tomo
-          c_tomography(imat,irecord,12) = c33_tomo
-          c_tomography(imat,irecord,13) = c34_tomo
-          c_tomography(imat,irecord,14) = c35_tomo
-          c_tomography(imat,irecord,15) = c36_tomo
-          c_tomography(imat,irecord,16) = c44_tomo
-          c_tomography(imat,irecord,17) = c45_tomo
-          c_tomography(imat,irecord,18) = c46_tomo
-          c_tomography(imat,irecord,19) = c55_tomo
-          c_tomography(imat,irecord,20) = c56_tomo
-          c_tomography(imat,irecord,21) = c66_tomo
+          c_tomography(:,imat,irecord) = (/ c11_tomo, c12_tomo, c13_tomo, c14_tomo, c15_tomo, c16_tomo, &
+                                            c22_tomo, c23_tomo, c24_tomo, c25_tomo, c26_tomo, &
+                                            c33_tomo, c34_tomo, c35_tomo, c36_tomo, &
+                                            c44_tomo, c45_tomo, c46_tomo, &
+                                            c55_tomo, c56_tomo, &
+                                            c66_tomo /)
 
           rho_tomography(imat,irecord) = rho_tomo
           z_tomography(imat,irecord) = z_tomo
@@ -569,53 +574,27 @@ end subroutine init_tomography_files
         do irecord = 2,nrecord(imat)
           !format: #x #y #z #c11 #c12 #c13 #c14 #c15 #c16 #c22 #c23 #c24 #c25 #c26 #c33 #c34 #c35 #c36 #c44 #c45 #c46 #c55 #c56 #c66
           !        #density
-          
           read(IIN,*,iostat=ier) x_tomo,y_tomo,z_tomo,c11_tomo,c12_tomo,c13_tomo,c14_tomo,c15_tomo,c16_tomo,c22_tomo,c23_tomo, &
-                                                    c24_tomo,c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo, &
-                                                    c45_tomo,c46_tomo,c55_tomo,c56_tomo,c66_tomo,rho_tomo
+                                                      c24_tomo,c25_tomo,c26_tomo,c33_tomo,c34_tomo,c35_tomo,c36_tomo,c44_tomo, &
+                                                      c45_tomo,c46_tomo,c55_tomo,c56_tomo,c66_tomo,rho_tomo
           if (ier /= 0) stop 'Error reading tomo file line format'
 
           ! stores record values
-          c_tomography(imat,irecord,1) = c11_tomo
-          c_tomography(imat,irecord,2) = c12_tomo
-          c_tomography(imat,irecord,3) = c13_tomo
-          c_tomography(imat,irecord,4) = c14_tomo
-          c_tomography(imat,irecord,5) = c15_tomo
-          c_tomography(imat,irecord,6) = c16_tomo
-          c_tomography(imat,irecord,7) = c22_tomo
-          c_tomography(imat,irecord,8) = c23_tomo
-          c_tomography(imat,irecord,9) = c24_tomo
-          c_tomography(imat,irecord,10) = c25_tomo
-          c_tomography(imat,irecord,11) = c26_tomo
-          c_tomography(imat,irecord,12) = c33_tomo
-          c_tomography(imat,irecord,13) = c34_tomo
-          c_tomography(imat,irecord,14) = c35_tomo
-          c_tomography(imat,irecord,15) = c36_tomo
-          c_tomography(imat,irecord,16) = c44_tomo
-          c_tomography(imat,irecord,17) = c45_tomo
-          c_tomography(imat,irecord,18) = c46_tomo
-          c_tomography(imat,irecord,19) = c55_tomo
-          c_tomography(imat,irecord,20) = c56_tomo
-          c_tomography(imat,irecord,21) = c66_tomo
+          c_tomography(:,imat,irecord) = (/ c11_tomo, c12_tomo, c13_tomo, c14_tomo, c15_tomo, c16_tomo, &
+                                            c22_tomo, c23_tomo, c24_tomo, c25_tomo, c26_tomo, &
+                                            c33_tomo, c34_tomo, c35_tomo, c36_tomo, &
+                                            c44_tomo, c45_tomo, c46_tomo, &
+                                            c55_tomo, c56_tomo, &
+                                            c66_tomo /)
 
           rho_tomography(imat,irecord) = rho_tomo
           z_tomography(imat,irecord) = z_tomo
         enddo
       endif
       close(IIN)
-
       ! user output
       if (myrank_tomo == 0) then
         write(IMAIN,*) ' number of grid points = NX*NY*NZ:',nrecord(imat)
-        write(IMAIN,*) ' Aniso parameter check....by BinHe '
-        write(IMAIN,*) ' max/min Gc :' ,maxval((c_tomography(:,:,16)-c_tomography(:,:,19))/(c_tomography(:,:,16)+c_tomography(:,:,19)+1.0e-20)),&
-                                        minval((c_tomography(:,:,16)-c_tomography(:,:,19))/(c_tomography(:,:,16)+c_tomography(:,:,19)+1.0e-20))
-        write(IMAIN,*) ' max/min Gs :' ,maxval((c_tomography(:,:,17)+c_tomography(:,:,17))/(c_tomography(:,:,16)+c_tomography(:,:,19)+1.0e-20)),&
-                                        minval((c_tomography(:,:,17)+c_tomography(:,:,17))/(c_tomography(:,:,16)+c_tomography(:,:,19)+1.0e-20))
-        write(IMAIN,*) ' max/min vp :' ,sqrt(maxval(c_tomography(:,:,1)/rho_tomography(:,:))),&
-                                        sqrt(minval(c_tomography(:,:,1)/rho_tomography(:,:)))
-        write(IMAIN,*) ' max/min vs :' ,sqrt(maxval(c_tomography(:,:,21)/rho_tomography(:,:))),&
-                                        sqrt(minval(c_tomography(:,:,21)/rho_tomography(:,:)))
         call flush_IMAIN()
       endif
 
@@ -781,16 +760,19 @@ end subroutine init_tomography_files
                               c11,c12,c13,c14,c15,c16,c22,c23,c24,c25,c26,c33,c34,c35,c36,c44,c45,c46,c55,c56,c66, &
                               imaterial_id,has_tomo_value)
 
-  use generate_databases_par, only: undef_mat_prop,nundefMat_ext_mesh,ATTENUATION_COMP_MAXIMUM
+  use generate_databases_par, only: nmat_ext_mesh,undef_mat_prop,nundefMat_ext_mesh, &
+                                    ATTENUATION_COMP_MAXIMUM
 
   use model_tomography_par
   !====BinHe====!
+  !====tomofile need to be projected back to lon and lat for later interpolation===!
   use constants, only : IUTM2LONGLAT
   use shared_parameters, only : SUPPRESS_UTM_PROJECTION
   !====BinHe====!
   implicit none
   !BinHe
   double precision :: xx_xmesh,yy_ymesh,lon_xmesh,lat_ymesh
+
   double precision, intent(in) :: xmesh,ymesh,zmesh
 
   real(kind=CUSTOM_REAL), intent(out) :: qkappa_atten,qmu_atten
@@ -803,7 +785,6 @@ end subroutine init_tomography_files
   logical,intent(out) :: has_tomo_value
 
   ! local parameters
-  integer :: ier,i
   integer :: ix,iy,iz,imat
   integer :: p0,p1,p2,p3,p4,p5,p6,p7
 
@@ -824,16 +805,22 @@ end subroutine init_tomography_files
   real(kind=CUSTOM_REAL) :: L_val
 
   ! anisotropy
-  real(kind=CUSTOM_REAL) :: c1,c2,c3,c4,c5,c6,c7,c8
-  real(kind=CUSTOM_REAL), dimension(:), allocatable :: c_final
+  real(kind=CUSTOM_REAL), dimension(21) :: c1,c2,c3,c4,c5,c6,c7,c8
+  real(kind=CUSTOM_REAL), dimension(21) :: c_final
 
   ! initializes flag
   has_tomo_value = .false.
 
   ! checks if we over-impose a tomography model by Par_file setting: MODEL = tomo
   if (nundefMat_ext_mesh == 0 .and. IMODEL == IMODEL_TOMO) then
-    ! sets material number
-    imat = 1
+    ! sets material number based on material ID
+    imat = imaterial_id
+
+    ! checks material id range
+    if (imat < 1 .or. imat > nmat_ext_mesh) then
+      print *,'Error tomography model: unknown material id ',imaterial_id,' for ',nmat_ext_mesh,' defined materials'
+      stop 'Error unknown material id in tomography model'
+    endif
   else
     ! checks if material is a tomographic material (negative id)
     if (imaterial_id >= 0) return
@@ -844,7 +831,7 @@ end subroutine init_tomography_files
     ! checks if associated type is a tomography model
     if (trim(undef_mat_prop(2,imat)) /= 'tomography') return
 
-    ! checks material
+    ! checks material id range
     if (imat < 1 .or. imat > nundefMat_ext_mesh) then
       print *,'Error tomography model: unknown material id ',imaterial_id,' for ',nundefMat_ext_mesh,' undefined materials'
       stop 'Error unknown material id in tomography model'
@@ -852,15 +839,14 @@ end subroutine init_tomography_files
   endif
 
   ! determine spacing and cell for linear interpolation
-  spac_x = (xmesh - ORIG_X(imat)) / SPACING_X(imat)
-  spac_y = (ymesh - ORIG_Y(imat)) / SPACING_Y(imat)
-  spac_z = (zmesh - ORIG_Z(imat)) / SPACING_Z(imat)
-  !print*,"BinHe output 1",xmesh,ORIG_X(imat),ymesh,ORIG_Y(imat)
+  ! spac_x = (xmesh - ORIG_X(imat)) / SPACING_X(imat)
+  ! spac_y = (ymesh - ORIG_Y(imat)) / SPACING_Y(imat)
+  ! spac_z = (zmesh - ORIG_Z(imat)) / SPACING_Z(imat)
+  !===Bin He====!
   if (SUPPRESS_UTM_PROJECTION) then
     spac_x = (xmesh - ORIG_X(imat)) / SPACING_X(imat)
     spac_y = (ymesh - ORIG_Y(imat)) / SPACING_Y(imat)
   else
-    !BinHe-------------
     xx_xmesh=xmesh
     yy_ymesh=ymesh
     call utm_geo(lon_xmesh,lat_ymesh,xx_xmesh,yy_ymesh,IUTM2LONGLAT)
@@ -995,22 +981,16 @@ end subroutine init_tomography_files
   if (ANISOTROPY .and. IMODEL == IMODEL_TOMO) then
 
     ! anisotropy
-    allocate(c_final(21),stat=ier)
-    if (ier /= 0) call exit_MPI_without_rank('error allocating array 905X')
-    if (ier /= 0) call exit_MPI(myrank_tomo,'not enough memory to allocate interpolated anisotropy parameters array')
-
-    do i = 1,21
-      c1 = c_tomography(imat,p0+1,i)
-      c2 = c_tomography(imat,p1+1,i)
-      c3 = c_tomography(imat,p2+1,i)
-      c4 = c_tomography(imat,p3+1,i)
-      c5 = c_tomography(imat,p4+1,i)
-      c6 = c_tomography(imat,p5+1,i)
-      c7 = c_tomography(imat,p6+1,i)
-      c8 = c_tomography(imat,p7+1,i)
-      ! use trilinear interpolation in cell to define Vp
-      c_final(i) = interpolate_trilinear(c1,c2,c3,c4,c5,c6,c7,c8)
-    enddo
+    c1(:) = c_tomography(:,imat,p0+1)
+    c2(:) = c_tomography(:,imat,p1+1)
+    c3(:) = c_tomography(:,imat,p2+1)
+    c4(:) = c_tomography(:,imat,p3+1)
+    c5(:) = c_tomography(:,imat,p4+1)
+    c6(:) = c_tomography(:,imat,p5+1)
+    c7(:) = c_tomography(:,imat,p6+1)
+    c8(:) = c_tomography(:,imat,p7+1)
+    ! use trilinear interpolation in cell to define C_ij
+    c_final(:) = interpolate_trilinear_array(c1(:),c2(:),c3(:),c4(:),c5(:),c6(:),c7(:),c8(:))
 
     c11 = c_final(1)
     c12 = c_final(2)
@@ -1036,12 +1016,6 @@ end subroutine init_tomography_files
 
     vp_model = sqrt(c11)/sqrt(rho_model) ! a better estimate of equivalent vp is needed for anisotropic models
     vs_model = sqrt(c66)/sqrt(rho_model) ! a better estimate of equivalent vs is needed for anisotropic models
-    if (vp_model <= 0._CUSTOM_REAL) then
-      print *,'Error: encountered zero Vp velocity in element! '
-      print *,'vp/vs/rho = ',vp_model,vs_model,rho_model,c11,c66
-      stop 'Error zero Vp velocity found'
-    endif
-    deallocate(c_final)
 
   else
 
@@ -1082,7 +1056,7 @@ end subroutine init_tomography_files
     vs_model = vs_final
 
   endif
-  
+
   ! attenuation
   if (tomo_has_q_values(imat)) then
     qp1 = qp_tomography(imat,p0+1)
@@ -1155,7 +1129,7 @@ end subroutine init_tomography_files
   implicit none
 
   real(kind=CUSTOM_REAL) :: interpolate_trilinear
-  real(kind=CUSTOM_REAL),intent(in) :: val1,val2,val3,val4,val5,val6,val7,val8
+  real(kind=CUSTOM_REAL), intent(in) :: val1,val2,val3,val4,val5,val6,val7,val8
 
   ! note: we use gamma factors from parent routine (with 'contains' we can still use the scope of the parent routine).
   !       gamma parameters are global entities here, and used for briefty of the calling routine command,
@@ -1173,6 +1147,33 @@ end subroutine init_tomography_files
          val8 * (1.d0-gamma_interp_x) * gamma_interp_y        * gamma_interp_z4
 
   end function interpolate_trilinear
+
+  function interpolate_trilinear_array(val1,val2,val3,val4,val5,val6,val7,val8)
+
+  use constants, only: CUSTOM_REAL
+
+  implicit none
+
+  real(kind=CUSTOM_REAL), dimension(21) :: interpolate_trilinear_array
+  real(kind=CUSTOM_REAL), intent(in), dimension(21) :: val1,val2,val3,val4,val5,val6,val7,val8
+
+  ! note: we use gamma factors from parent routine (with 'contains' we can still
+  ! use the scope of the parent routine).
+  !       gamma parameters are global entities here, and used for briefty of the
+  !       calling routine command,
+  !       just to be aware...
+
+  ! interpolation rule
+  interpolate_trilinear_array(:) = val1(:) * (1.d0-gamma_interp_x) * (1.d0-gamma_interp_y) * (1.d0-gamma_interp_z1) + &
+                                   val2(:) * gamma_interp_x        * (1.d0-gamma_interp_y) * (1.d0-gamma_interp_z2) + &
+                                   val3(:) * gamma_interp_x        * gamma_interp_y        * (1.d0-gamma_interp_z3) + &
+                                   val4(:) * (1.d0-gamma_interp_x) * gamma_interp_y        * (1.d0-gamma_interp_z4) + &
+                                   val5(:) * (1.d0-gamma_interp_x) * (1.d0-gamma_interp_y) * gamma_interp_z1 + &
+                                   val6(:) * gamma_interp_x        * (1.d0-gamma_interp_y) * gamma_interp_z2 + &
+                                   val7(:) * gamma_interp_x        * gamma_interp_y        * gamma_interp_z3 + &
+                                   val8(:) * (1.d0-gamma_interp_x) * gamma_interp_y        * gamma_interp_z4
+
+  end function interpolate_trilinear_array
 
   end subroutine model_tomography
 

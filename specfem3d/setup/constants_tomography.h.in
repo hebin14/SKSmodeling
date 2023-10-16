@@ -1,7 +1,7 @@
 !=====================================================================
 !
-!               S p e c f e m 3 D  V e r s i o n  3 . 0
-!               ---------------------------------------
+!                          S p e c f e m 3 D
+!                          -----------------
 !
 !     Main historical authors: Dimitri Komatitsch and Jeroen Tromp
 !                              CNRS, France
@@ -41,9 +41,7 @@
   logical, parameter :: USE_ISO_KERNELS = .false.
 
   ! if you prefer isotropic  (alpha,beta,rho) kernels, set this flag to true
-  logical, parameter :: USE_ALPHA_BETA_RHO = .false.
-  logical, parameter :: USE_ALPHA_BETA_RHO_TISO = .false. ! Kai added
-  logical, parameter :: USE_ALPHA_BETA_RHO_AZISO = .true. ! Bin added
+  logical, parameter :: USE_ALPHA_BETA_RHO = .true.
 
   ! region code
   ! (local version "_", globe version "_reg1_" for crust/mantle
@@ -88,7 +86,7 @@
 !!
 !!-----------------------------------------------------------
   ! ignore rho kernel, but use density perturbations as a scaling of Vs perturbations
-  logical, parameter :: USE_RHO_SCALING = .false.
+  logical, parameter :: USE_RHO_SCALING = .true.
 
   ! in case of rho scaling, specifies density scaling factor with shear perturbations
   ! see e.g. Montagner & Anderson (1989), Panning & Romanowicz (2006)
